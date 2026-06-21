@@ -3,7 +3,7 @@ from flask import Flask, render_template, jsonify
 import subprocess, re, socket, uuid
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 
 def run_map():
 
