@@ -1,10 +1,21 @@
 
 from flask import Flask, render_template, jsonify
-import subprocess, re
+import subprocess, re, socket, uuid
+
 
 app = Flask(__name__)
 
 def run_map():
+
+    # Get the local IP address
+    
+    my_ip = socket.gethostbyname(socket.gethostname())
+
+    my_mac = ':'.join(
+    f'{(uuid.getnode() >> i) & 0xff:02X}'
+    for i in range(40, -1, -8)
+)
+
     result = subprocess.run(
         ["nmap", "-sn", "192.168.1.0/24"], 
         capture_output=True, 
@@ -25,11 +36,14 @@ def run_map():
             if match:
                 current["host"] = match.group(1)
                 current["ip"] = match.group(2)
+                
         elif "MAC Address" in line and current:
                 current["mac"] = None
                 mac = re.search(r"MAC Address: ([A-Fa-f0-9:]+)", line)
                 if mac:
                     current["mac"] = mac.group(1)
+                if current["ip"] == my_ip:
+                    current["mac"] = my_mac
         elif "Host" in line and current:
                 current["latency"] = None
                 latency = re.search(r"\((.*? ) latency\)", line)
