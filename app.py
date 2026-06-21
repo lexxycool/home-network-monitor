@@ -11,33 +11,35 @@ def run_map():
         text=True
     )
 
-    devices = []
+    devices = {}
 
-    current = {}
+    current = None
 
     for line in result.stdout.splitlines():
         if "Nmap scan report for" in line:
-            if current:
-                devices.append(current)
+            if current and "ip" in current:
+                devices[current["ip"]] = current
             current = {}
 
             match = re.search(r"Nmap scan report for (.*?) \((.*?)\)", line)
             if match:
                 current["host"] = match.group(1)
                 current["ip"] = match.group(2)
-            elif "MAC Address" in line:
+        elif "MAC Address" in line and current:
+                current["mac"] = None
                 mac = re.search(r"MAC Address: ([A-Fa-f0-9:]+)", line)
                 if mac:
                     current["mac"] = mac.group(1)
-            elif "Host is up" in line:
+        elif "Host" in line and current:
+                current["latency"] = None
                 latency = re.search(r"\((.*? ) latency\)", line)
                 if latency:
                     current["latency"] = latency.group(1)
         
-        if current:
-            devices.append(current)
+    if current and "ip" in current:
+        devices[current["ip"]] = current
 
-    return devices
+    return list(devices.values())
 
 
 @app.route("/")
