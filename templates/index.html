@@ -17,7 +17,13 @@
 <script>
     async function loadData() {
 
-        const response = await fetch('/scan');
+        const btn = document.getElementById("scanBtn");
+
+        btn.disabled = true;
+        btn.innerHTML = "⏳ Scanning...";
+
+        const network = document.getElementById("networkRange").value;
+        const response = await fetch(`/scan?network=${encodeURIComponent(network)}`);
         const devices = await response.json();
 
         document.getElementById("deviceCount").innerText = devices.length;
@@ -42,6 +48,8 @@
         });
 
         document.getElementById("deviceBody").innerHTML = rows;
+        btn.disabled = false;
+        btn.innerHTML = "Scan";
     }
 
     window.onload = () => {
@@ -81,12 +89,11 @@
 
 <div class="container">
 
-<div class="row mb-4">
+    <div class="row mb-4 justify-content-between">
 
+        <!-- Devices Online -->
     <div class="col-md-4">
-
-        <div class="card stat-card">
-
+        <div class="card stat-card h-100">
             <div class="card-body">
 
                 <h6 class="text-muted">
@@ -98,11 +105,64 @@
                 </h1>
 
             </div>
-
         </div>
+    </div>
+
+    <!-- Network Scanner -->
+    <div class="col-md-4">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Network Scan
+                </h6>
+
+                <input
+                    type="text"
+                    id="networkRange"
+                    class="form-control mb-2"
+                    value="192.168.1.0/24">
+
+                <button
+                    id="scanBtn"
+                    class="btn btn-primary w-100"
+                    onclick="loadData()">
+
+                    Scan
+
+                </button>
+
+            </div>
+        </div>
+    </div>
+            
 
     </div>
 
+<!-- <div class="card shadow-sm mb-4"> -->
+    <!-- <div class="card-body">
+
+        <label class="form-label">
+            Network Range
+        </label>
+
+        <div class="input-group">
+
+            <input
+                id="networkRange"
+                class="form-control"
+                value="192.168.1.0/24"
+            >
+
+            <button
+                class="btn btn-primary"
+                onclick="loadData()">
+                Scan
+            </button>
+
+        </div>
+
+    </div> -->
 </div>
 
 <div class="device-table">
