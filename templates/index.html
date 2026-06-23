@@ -14,19 +14,49 @@
 </style>
 
 
-<script>
-    async function loadData() {
+<!-- <script>
+    async function scanNetwork() {
+
+        if (scanInProgress) return;
+
+        scanInProgress = true;
 
         const btn = document.getElementById("scanBtn");
-
         btn.disabled = true;
         btn.innerHTML = "⏳ Scanning...";
 
         const network = document.getElementById("networkRange").value;
-        const response = await fetch(`/scan?network=${encodeURIComponent(network)}`);
-        const devices = await response.json();
 
-        document.getElementById("deviceCount").innerText = devices.length;
+        try {
+      
+            const response = await fetch(`/scan?network=${encodeURIComponent(network)}`);
+            const devices = await response.json();
+
+            document.getElementById("deviceCount").innerText = devices.length;
+
+            let rows = "";
+
+            devices.forEach(device => {
+
+                rows += `
+                <tr>
+                    <td>${device.host || 'Unknown Device'}</td>
+                    <td>${device.ip || '-'}</td>
+                    <td>${device.mac || '-'}</td>
+                    <td>${device.latency || '-'}</td>
+                    <td>
+                        <span class="status-online">
+                            Online
+                        </span>
+                    </td>
+                </tr>
+                `;
+            });
+
+            document.getElementById("deviceBody").innerHTML = rows;
+        } catch (error) {
+            console.error("Network scan failed:", error);
+        }
 
         let rows = "";
 
@@ -47,17 +77,107 @@
             `;
         });
 
-        document.getElementById("deviceBody").innerHTML = rows;
         btn.disabled = false;
         btn.innerHTML = "Scan";
+
+        scanInProgress = false;
     }
 
     window.onload = () => {
-        loadData();
-        setInterval(loadData, 10000);
+        setUpAutoRefresh();
     };
-</script>
 
+    let autoRefreshTimer = null;
+    let scanInProgress = false;
+
+    function setUpAutoRefresh() {
+        const rate = parseInt(document.getElementById("autoRefreshRate").value);
+        if (autoRefreshTimer) {
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+
+        if (rate > 0) {
+            autoRefreshTimer = setInterval(() => {
+                scanNetwork();
+            }, rate);
+        }
+    }
+
+</script> -->
+
+<script>
+
+let autoRefreshTimer = null;
+let scanInProgress = false;
+
+async function scanNetwork() {
+
+    if (scanInProgress) return;
+
+    scanInProgress = true;
+
+    const btn = document.getElementById("scanBtn");
+    btn.disabled = true;
+    btn.innerHTML = "⏳ Scanning...";
+
+    const network = document.getElementById("networkRange").value;
+
+    try {
+        const response = await fetch(`/scan?network=${encodeURIComponent(network)}`);
+        const devices = await response.json();
+
+        document.getElementById("deviceCount").innerText = devices.length;
+
+        let rows = "";
+
+        devices.forEach(device => {
+            rows += `
+                <tr>
+                    <td>${device.host || 'Unknown Device'}</td>
+                    <td>${device.ip || '-'}</td>
+                    <td>${device.mac || '-'}</td>
+                    <td>${device.latency || '-'}</td>
+                    <td><span class="status-online">Online</span></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById("deviceBody").innerHTML = rows;
+
+    } catch (error) {
+        console.error("Network scan failed:", error);
+    } finally {
+        // ALWAYS runs (this fixes your stuck "Scanning..." issue)
+        btn.disabled = false;
+        btn.innerHTML = "Scan";
+        scanInProgress = false;
+    }
+}
+
+
+function setUpAutoRefresh() {
+
+    const rate = parseInt(document.getElementById("autoRefreshRate").value);
+
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+    }
+
+    if (rate > 0) {
+        autoRefreshTimer = setInterval(() => {
+            scanNetwork();
+        }, rate);
+    }
+}
+
+
+window.onload = () => {
+    setUpAutoRefresh(); // no scan on load
+};
+
+</script>
 </head>
 
 <body>
@@ -78,7 +198,7 @@
         </div>
 
         <span class="badge bg-success refresh-badge">
-            Auto Refresh: 10s
+            Auto Refresh: 60s
         </span>
 
     </div>
@@ -126,10 +246,8 @@
                 <button
                     id="scanBtn"
                     class="btn btn-primary w-100"
-                    onclick="loadData()">
-
+                    onclick="scanNetwork()">
                     Scan
-
                 </button>
 
             </div>
