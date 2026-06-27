@@ -36,6 +36,7 @@ def home():
 # frontend data here
 @app.route("/api/devices", methods=["GET"])
 def devices():
+    print(latest_devices)
     return jsonify(latest_devices)
 
 

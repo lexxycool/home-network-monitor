@@ -15,21 +15,10 @@
         <script>
 
         
-
             let autoRefreshTimer = null;
             let scanInProgress = false;
 
             async function loadDevices() {
-
-                if (scanInProgress) return;
-
-                scanInProgress = true;
-
-                const btn = document.getElementById("scanBtn");
-                btn.disabled = true;
-                btn.innerHTML = "⏳ Scanning...";
-
-
                 try {
                     const response = await fetch("/api/devices");
                     const devices = await response.json();
@@ -38,9 +27,9 @@
 
                     let rows = "";
 
-                    if(devices.length === 0) {
+                    if (devices.length === 0) {
                         document.getElementById("deviceBody").innerHTML =
-                            "<tr><td>No devices found</td></tr>"
+                            "<tr><td colspan='5'>No devices found</td></tr>";
                         return;
                     }
 
@@ -64,35 +53,32 @@
                     document.getElementById("deviceBody").innerHTML = rows;
 
                 } catch (error) {
-                    console.error("Network scan failed:", error);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = "Scan";
-                    scanInProgress = false;
+                    console.error("Refresh failed:", error);
                 }
             }
 
 
-            function setUpAutoRefresh() {
+            // function setUpAutoRefresh() {
 
-                const rate = parseInt(document.getElementById("autoRefreshRate").value);
+            //     const rate = parseInt(document.getElementById("autoRefreshRate").value);
 
-                if (autoRefreshTimer) {
-                    clearInterval(autoRefreshTimer);
-                    autoRefreshTimer = null;
-                }
+            //     if (autoRefreshTimer) {
+            //         clearInterval(autoRefreshTimer);
+            //         autoRefreshTimer = null;
+            //     }
 
-                if (rate > 0) {
-                    autoRefreshTimer = setInterval(() => {
-                        loadDevices();
-                    }, rate);
-                }
-            }
+            //     if (rate > 0) {
+            //         autoRefreshTimer = setInterval(() => {
+            //             loadDevices();
+            //         }, rate);
+            //     }
+            // }
 
 
-            window.onload = () => {
-                setUpAutoRefresh(); 
-            };
+            // window.onload = () => {
+            //     setUpAutoRefresh(); 
+            // };
+
 
             function load_oui() {
                 const oui_map = {};
