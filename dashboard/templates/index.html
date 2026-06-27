@@ -19,7 +19,7 @@
             let autoRefreshTimer = null;
             let scanInProgress = false;
 
-            async function scanNetwork() {
+            async function loadDevices() {
 
                 if (scanInProgress) return;
 
@@ -29,15 +29,20 @@
                 btn.disabled = true;
                 btn.innerHTML = "⏳ Scanning...";
 
-                const network = document.getElementById("networkRange").value;
 
                 try {
-                    const response = await fetch(`/scan?network=${encodeURIComponent(network)}`);
+                    const response = await fetch("/api/devices");
                     const devices = await response.json();
 
                     document.getElementById("deviceCount").innerText = devices.length;
 
                     let rows = "";
+
+                    if(devices.length === 0) {
+                        document.getElementById("deviceBody").innerHTML =
+                            "<tr><td>No devices found</td></tr>"
+                        return;
+                    }
 
                     devices.forEach(device => {
                         rows += `
@@ -79,7 +84,7 @@
 
                 if (rate > 0) {
                     autoRefreshTimer = setInterval(() => {
-                        scanNetwork();
+                        loadDevices();
                     }, rate);
                 }
             }
@@ -88,6 +93,25 @@
             window.onload = () => {
                 setUpAutoRefresh(); 
             };
+
+            function load_oui() {
+                const oui_map = {};
+                fetch("oui.txt")
+                    .then(response => response.text())
+                    .then(text => {
+                        const lines = text.split("\n");
+                        lines.forEach(line => {
+                            if (line.includes("(hex)")) {
+                                const parts = line.split("(hex)");
+                                let mac_prefix = parts[0].trim().toUpperCase();
+                                mac_prefix = mac_prefix.replace("-", ":");
+                                const vendor = parts[1].trim();
+                                oui_map[mac_prefix] = vendor;
+                            }
+                        });
+                    });
+                return oui_map;
+            }
 
         </script>
     </head>
@@ -158,8 +182,8 @@
                             <button
                                 id="scanBtn"
                                 class="btn btn-primary w-100"
-                                onclick="scanNetwork()">
-                                Scan
+                                onclick="loadDevices()">
+                                Refresh Data
                             </button>
 
                         </div>
