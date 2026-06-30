@@ -1,6 +1,6 @@
 import requests, re, socket, subprocess, uuid
 
-AZURE_URL = "https://home-network-scanner-hrbkdjgkfnbhf5cp.eastus-01.azurewebsites.net/"
+AZURE_URL = "https://home-network-scanner-hrbkdjgkfnbhf5cp.eastus-01.azurewebsites.net/api/upload"
 
 
 def get_vendor(mac):
@@ -126,10 +126,13 @@ if __name__ == "__main__":
     devices = run_map(network)
 
     # post to flask server
-    requests.post(
+    response = requests.post(
         AZURE_URL,
         json=devices
     )
+
+    print("STATUS:", response.status_code)
+    print("RESPONSE:", response.text)
 
 
 
