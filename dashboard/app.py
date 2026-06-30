@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 import os
 
-app = Flask(__name__, static_folder="static")
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # stores latest scan from scanner
 latest_devices = []
